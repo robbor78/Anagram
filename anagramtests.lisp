@@ -16,5 +16,7 @@
 (find-anagram *tree*  "act")
 (find-anagram *tree*  "at")
 
+(find-sentence *tree* "rail safety")
+
 (my-split "hello world")
 (my-split "rail safety")

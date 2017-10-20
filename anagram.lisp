@@ -99,6 +99,15 @@
     ;; (format t "~%")))
   (format t "done~%"))
 
+(defun occurence (input)
+  (let ((h (make-hash-table)))
+    (loop for char across input do
+       (when (not (delimiterp char))
+         (when (null (gethash char h))
+               (setf (gethash char h) 0 ))
+         (incf (gethash char h))))
+    h))
+
 ;;from stackoverflow!
 (defun my-split (string &key (delimiterp #'delimiterp))
   (loop :for beg = (position-if-not delimiterp string)
@@ -111,3 +120,6 @@
 
 (defun hash-keys (hash-table)
   (loop for key being the hash-keys of hash-table collect key))
+
+(defun hash-values (hash-table)
+  (loop for value being the hash-values of hash-table collect value))
