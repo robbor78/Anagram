@@ -1,0 +1,7 @@
+(let ((x (make-array 0 :fill-pointer 0 :adjustable t))
+      (a (vector 5 6 7))
+      (b (vector 1 2 3 4)))
+  (vector-push-extend a x)
+  (vector-push-extend b x)
+  (print (concatenate 'list a x))
+  (print x))
