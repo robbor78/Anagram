@@ -18,5 +18,7 @@
 
 (find-sentence *tree* "rail safety")
 
+(find-sentence2 *tree* "rail safety")
+
 (my-split "hello world")
 (my-split "rail safety")

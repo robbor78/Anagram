@@ -99,7 +99,7 @@
     ;; (format t "~%")))
   (format t "done~%"))
 
-(defun occurence (input)
+(defun make-occurence (input)
   (let ((h (make-hash-table)))
     (loop for char across input do
        (when (not (delimiterp char))
@@ -107,6 +107,23 @@
                (setf (gethash char h) 0 ))
          (incf (gethash char h))))
     h))
+
+(defun find-sentence2 (tree sentence)
+  (let ((o (make-occurence sentence)))
+    (defun find-sentence2-local (curr)
+      (with-slots (nodes) curr
+        (loop for char being the hash-keys in nodes using (hash-value subnode) do
+             (when (> (gethash char o) 0)
+               (decf (gethash char o))
+               (with-slots (words) curr
+                 (when (> (length words) 0)
+                   (format t "~a~%" words)
+                   (find-sentence2-local tree)))
+               (find-sentence2-local subnode)
+               (incf (gethash char o)))))
+      (with-slots (words) curr
+          (format t "~a~%" words)))
+    (find-sentence2-local tree)))
 
 ;;from stackoverflow!
 (defun my-split (string &key (delimiterp #'delimiterp))
