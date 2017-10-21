@@ -26,14 +26,15 @@
   (let ((curr tree))
     (loop for char across (nstring-upcase (sort (copy-seq word) #'char-lessp)) do
          (initnodes curr)
-         (format t "curr= ~a ~a~%" curr (slot-value curr 'nodes))
+         ;; (format t "curr= ~a ~a~%" curr (slot-value curr 'nodes))
          (with-slots (nodes) curr
            (multiple-value-bind (value present) (gethash char nodes)
+             value ;;avoid compiler warning
              (when (not present)
                (setf (gethash char nodes) (make-instance 'node))))
            (setf curr (gethash char nodes))
-           (format t "tree= ~a ~a~%" tree nodes)
-           (format t "curr= ~a ~a~%" curr (slot-value curr 'nodes))
+           ;; (format t "tree= ~a ~a~%" tree nodes)
+           ;; (format t "curr= ~a ~a~%" curr (slot-value curr 'nodes))
            ))
     (with-slots (words) curr
       (initwords curr)
@@ -43,7 +44,7 @@
 
 (defun add-sentence (tree sentence)
   (loop for word in (my-split sentence) do
-       (format t "adding ~a~%" word)
+       ;; (format t "adding ~a~%" word)
        (add-word tree word)))
 
 (defun print-tree (tree)
@@ -118,11 +119,23 @@
          (incf (gethash char h))))
     h))
 
+(defun all-zerop (o)
+  (loop for count being the hash-values in o always (= count 0)))
+
+(defun exhaustedp (occurence)
+  (all-zerop occurence))
+
+(defun has-wordsp (node)
+  (> (length (slot-value node 'words)) 0))
+
+(defun add-words (partial solution)
+  (vector-push-extend partial solution))
+
 (defun find-sentence2 (tree sentence)
   (let ((o (make-occurence sentence)))
     (defun find-sentence2-local (curr)
                                         ;(print-occurence o)
-      (when (all-zero o)
+      (when (all-zerop o)
         (format t "exhausted~%")
         (when (> (length (slot-value curr 'words)) 0)
           (format t "matched~%"))
@@ -154,19 +167,27 @@
 
 (defun find-sentence3 (tree-root sentence)
   ;;local variables
-  ;;partial solution
-  ;;solutions
-  ;;input with occurences (make occurences)
+  (let (
+        ;;partial solution
+        (partial (make-array 0 :fill-pointer 0 :adjustable t))
+        ;;solutions
+        (solutions (make-array 0 :fill-pointer 0 :adjustable t))
+        ;;input with occurences (make occurences)
+        (o (make-occurence sentence)))
 
   ;;local function
   (defun find-sentence3-local (current-node)
 
     ;;exhausted?
     ;;yes
+    (when (exhaustedp o)
     ;;;words at current node?
     ;;;yes
+      (when (has-wordsp current-node)
     ;;;;add words at current node to partial solution and add partial solution to solutions
-    ;;return
+        (add-words partial solutions))
+      ;;return
+      (return-from find-sentence3-local))
 
     ;;not exchausted
 
@@ -189,7 +210,7 @@
   (find-sentence3-local tree-root)
 
   ;;return solutions
-  )
+  ))
 
 ;;from stackoverflow!
 (defun my-split (string &key (delimiterp #'delimiterp))
@@ -201,8 +222,7 @@
 
 (defun delimiterp (c) (or (char= c #\Space) (char= c #\,)))
 
-(defun all-zero (o)
-  (loop for count being the hash-values in o always (= count 0)))
+
 
 (defun hash-keys (hash-table)
   (loop for key being the hash-keys of hash-table collect key))
