@@ -1,3 +1,5 @@
+(in-package :anagram)
+
 (defclass node ()
   ((nodes
     :initform () ;;make-hash-table)
@@ -149,6 +151,45 @@
     (print-occurence o)
     (find-sentence2-local tree)
     (format t "done")))
+
+(defun find-sentence3 (tree-root sentence)
+  ;;local variables
+  ;;partial solution
+  ;;solutions
+  ;;input with occurences (make occurences)
+
+  ;;local function
+  (defun find-sentence3-local (current-node)
+
+    ;;exhausted?
+    ;;yes
+    ;;;words at current node?
+    ;;;yes
+    ;;;;add words at current node to partial solution and add partial solution to solutions
+    ;;return
+
+    ;;not exchausted
+
+    ;;words at current node? (either at leaf or node)
+    ;;yes
+    ;;;1. add words at current node to partial solution
+    ;;;2. recurse from tree-root AND indicate which nodes not to search, i.e. call find-sentence3-local with tree-root
+    ;;;3. remove words at current node from partial solution
+
+    ;;loop through all chars at current node
+    ;;;char in occurence and count > 0?
+    ;;;yes
+    ;;;;decrement count
+    ;;;;recurse to char-node, i.e. call find-sentence3-local with char-node
+    ;;;;increment count
+    )
+
+
+  ;;start a tree-root
+  (find-sentence3-local tree-root)
+
+  ;;return solutions
+  )
 
 ;;from stackoverflow!
 (defun my-split (string &key (delimiterp #'delimiterp))

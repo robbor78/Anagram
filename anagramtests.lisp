@@ -1,3 +1,5 @@
+(in-package :anagram)
+
 (defparameter *tree* (make-instance 'node))
 
 
@@ -33,3 +35,19 @@
 
 (my-split "hello world")
 (my-split "rail safety")
+
+(unittests::test-arithmetic)
+
+;;(equal '((("ad" "da") ("bcef")) (("abc" "cba") '("def"))) '((("abc" "cba") '("def"))))
+
+(unittests::deftest test1 ()
+  (let ((tree (make-instance 'node)))
+
+    (add-word tree "abc")
+    (add-word tree "cba")
+
+    (unittests::check (equal (find-sentence3 tree "bac") '((("abc" "cba")))))
+
+
+
+    ))
