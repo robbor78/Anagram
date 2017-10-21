@@ -5,3 +5,11 @@
   (vector-push-extend b x)
   (print (concatenate 'list a x))
   (print x))
+
+(let ((x ()))
+  (setf x (cons 1 x))
+  (setf x (cons 2 x))
+  (format t "~a~%" x)
+  (format t "~a~%" (car x))
+  (setf x (cdr x))
+  (format t "~a~%" x))

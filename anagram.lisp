@@ -131,6 +131,12 @@
 (defun add-words (partial solution)
   (vector-push-extend partial solution))
 
+(defun add-words-from-node (node store)
+  (add-words (slot-value node 'words) store))
+
+(defun remove-words (store)
+  (vector-pop store))
+
 (defun find-sentence2 (tree sentence)
   (let ((o (make-occurence sentence)))
     (defun find-sentence2-local (curr)
@@ -173,52 +179,95 @@
         ;;solutions
         (solutions (make-array 0 :fill-pointer 0 :adjustable t))
         ;;input with occurences (make occurences)
-        (o (make-occurence sentence)))
+        (o (make-occurence sentence))
+        ;;stack to store last search char from tree-root
+        (tree-root-chars ()))
 
-  ;;local function
-  (defun find-sentence3-local (current-node)
+    ;;local function
 
-    ;;exhausted?
-    ;;yes
-    (when (exhaustedp o)
+    (defun peek-last-tree-root-char ()
+      (car tree-root-chars))
+
+    (defun push-char-if-at-tree-root (current-node char)
+      (when (= current-node tree-root)
+        (setf tree-root-chars (cons char tree-root-chars))))
+
+    (defun pop-char-if-at-tree-root (current-node)
+      (when (= current-node tree-root)
+        (setf tree-root-chars (cdr tree-root-chars))))
+
+    (defun ok-to-process-charp (current-node char start-from-char ok-to-process-char)
+      (cond
+        ((not (= current-node tree-root)) 2)
+        ((= ok-to-process-char 2) ok-to-process-char)
+        ((= ok-to-process-char 1) 2)
+        ((or (not start-from-char)
+             (= char
+                start-from-char)) 1)))
+
+    (defun find-sentence3-local (current-node &key start-from-char)
+
+      ;;exhausted?
+      (when (exhaustedp o)
+        ;;yes
     ;;;words at current node?
+        (when (has-wordsp current-node)
     ;;;yes
-      (when (has-wordsp current-node)
     ;;;;add words at current node to partial solution and add partial solution to solutions
-        (add-words partial solutions))
-      ;;return
-      (return-from find-sentence3-local))
+          (add-words partial solutions)
+          (add-words-from-node current-node solutions))
+        ;;return
+        (return-from find-sentence3-local))
 
-    ;;not exchausted
+      ;;not exchausted
 
-    ;;words at current node? (either at leaf or node)
-    ;;yes
+      ;;words at current node? (either at leaf or node)
+      (when (has-wordsp current-node)
+        ;;yes
     ;;;1. add words at current node to partial solution
+        (add-words-from-node current-node partial)
     ;;;2. recurse from tree-root AND indicate which nodes not to search, i.e. call find-sentence3-local with tree-root
+        (find-sentence3-local tree-root :start-from-char (peek-last-tree-root-char))
     ;;;3. remove words at current node from partial solution
+        (remove-words partial)
+        )
 
-    ;;loop through all chars at current node
-    ;;;char in occurence and count > 0?
+      ;;loop through all chars at current node
+      (with-slots (nodes) current-node
+        (when (not (null nodes))
+          (let ((ok-to-process-char 0))
+          (loop for char being the hash-keys in nodes using (hash-value subnode) do
+               (when (= 2
+                        (setf ok-to-process-char (ok-to-process-charp
+                                                  current-node
+                                                  char
+                                                  start-from-char
+                                                  ok-to-process-char)))
+
     ;;;yes
     ;;;;decrement count
+    ;;;;if at tree-root push char
+               (push-char-if-at-tree-root current-node char)
     ;;;;recurse to char-node, i.e. call find-sentence3-local with char-node
+    ;;;;if at tree-root pop char
+               (pop-char-if-at-tree-root current-node)
     ;;;;increment count
-    )
+      ))))))
 
 
-  ;;start a tree-root
-  (find-sentence3-local tree-root)
+    ;;start a tree-root
+    (find-sentence3-local tree-root)
 
-  ;;return solutions
-  ))
+    ;;return solutions
+    ))
 
 ;;from stackoverflow!
 (defun my-split (string &key (delimiterp #'delimiterp))
   (loop :for beg = (position-if-not delimiterp string)
-    :then (position-if-not delimiterp string :start (1+ end))
-    :for end = (and beg (position-if delimiterp string :start beg))
-    :when beg :collect (subseq string beg end)
-    :while end))
+     :then (position-if-not delimiterp string :start (1+ end))
+     :for end = (and beg (position-if delimiterp string :start beg))
+     :when beg :collect (subseq string beg end)
+     :while end))
 
 (defun delimiterp (c) (or (char= c #\Space) (char= c #\,)))
 
