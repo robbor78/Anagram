@@ -46,10 +46,13 @@
     (add-word tree "abc")
     (add-word tree "cba")
 
-    (unittests::check (equal (find-sentence3 tree "bac") '((("abc" "cba")))))
+    (let ((result (find-sentence3 tree "bac")))
+
+      (format t "~a~%" result)
+      (unittests::check (equal result '((("abc" "cba")))))
 
 
 
-    ))
+    )))
 
 (test1)

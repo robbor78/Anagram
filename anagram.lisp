@@ -22,11 +22,11 @@
 
 
 (defun add-word (tree word)
-  ;(format t "Adding ~a to tree.~%" word)
+                                        ;(format t "Adding ~a to tree.~%" word)
   (let ((curr tree))
     (loop for char across (nstring-upcase (sort (copy-seq word) #'char-lessp)) do
          (initnodes curr)
-         ;; (format t "curr= ~a ~a~%" curr (slot-value curr 'nodes))
+       ;; (format t "curr= ~a ~a~%" curr (slot-value curr 'nodes))
          (with-slots (nodes) curr
            (multiple-value-bind (value present) (gethash char nodes)
              value ;;avoid compiler warning
@@ -38,31 +38,31 @@
            ))
     (with-slots (words) curr
       (initwords curr)
-      ;(format t "Adding word ~a to tree.~%" word)
+                                        ;(format t "Adding word ~a to tree.~%" word)
       (vector-push-extend word words))
     ))
 
 (defun add-sentence (tree sentence)
   (loop for word in (my-split sentence) do
-       ;; (format t "adding ~a~%" word)
+     ;; (format t "adding ~a~%" word)
        (add-word tree word)))
 
 (defun print-tree (tree)
   (with-slots (nodes words) tree
-    ;(format t "tree= ~a~%" tree)
-    ;(format t "chars=~a~%" (hash-keys nodes))
+                                        ;(format t "tree= ~a~%" tree)
+                                        ;(format t "chars=~a~%" (hash-keys nodes))
     (when (> (length words) 0)
       (format t " (~a) " words))
     (cond ((null nodes)
            (format t " (~a)~%" words))
           (t
-           ;(format t "chars=~a~%" (hash-keys nodes))
+                                        ;(format t "chars=~a~%" (hash-keys nodes))
            (loop for char being the hash-keys in nodes using (hash-value subnode) do
                 (format t "~a" char)
                 (print-tree subnode))))))
 
 (defun find-anagram (tree word)
-   (let ((curr tree))
+  (let ((curr tree))
     (loop for char across (nstring-upcase (sort (copy-seq word) #'char-lessp)) do
          (with-slots (nodes) curr
            (when (null (gethash char nodes))
@@ -104,19 +104,19 @@
     (when in
       (loop for word = (read-line in nil) while word do
                                         ;(format t "~a~%" word)
-           ;; (format t ".")
+         ;; (format t ".")
            (add-word tree word)
            )))
-    ;; (format t "~%")))
+  ;; (format t "~%")))
   (format t "done~%"))
 
 (defun make-occurence (input)
   (let ((h (make-hash-table)))
     (loop for char across (nstring-upcase input) do
-       (when (not (delimiterp char))
-         (when (null (gethash char h))
-               (setf (gethash char h) 0 ))
-         (incf (gethash char h))))
+         (when (not (delimiterp char))
+           (when (null (gethash char h))
+             (setf (gethash char h) 0 ))
+           (incf (gethash char h))))
     h))
 
 (defun all-zerop (o)
@@ -201,15 +201,17 @@
         ((not (equal current-node tree-root)) 2)
         ((= ok-to-process-char 2) ok-to-process-char)
         ((= ok-to-process-char 1) 2)
-        ((or (not start-from-char)
-             (= char
-                start-from-char)) 1)))
+        ((not start-from-char) 2)
+        ((= char start-from-char) 1)))
 
     (defun find-sentence3-local (current-node &key start-from-char)
 
       ;;exhausted?
       (when (exhaustedp o)
         ;;yes
+
+        (format t "exhausted")
+
     ;;;words at current node?
         (when (has-wordsp current-node)
     ;;;yes
@@ -236,35 +238,43 @@
       (with-slots (nodes) current-node
         (when (not (null nodes))
           (let ((ok-to-process-char 0))
-          (loop for char being the hash-keys in nodes using (hash-value char-node) do
-               (when (= 2
-                        (setf ok-to-process-char (ok-to-process-charp
-                                                  current-node
-                                                  char
-                                                  start-from-char
-                                                  ok-to-process-char)))
+            (loop for char being the hash-keys in nodes using (hash-value char-node) do
 
+                 (format t "checking is ok to process...~%")
+
+                 (when (= 2
+                          (setf ok-to-process-char (ok-to-process-charp
+                                                    current-node
+                                                    char
+                                                    start-from-char
+                                                    ok-to-process-char)))
 
 ;;;is char in occurence and count > 0?
-                 (multiple-value-bind (value present) (gethash char o)
-                   (when (and present (> value 0))
+                   (multiple-value-bind (value present) (gethash char o)
+                     (when (and present (> value 0))
     ;;;yes
     ;;;;decrement count
-                     (decf (gethash char o))
+                       (decf (gethash char o))
     ;;;;if at tree-root push char
-               (push-char-if-at-tree-root current-node char)
+                       (push-char-if-at-tree-root current-node char)
+
+                       (format t "char=~a~%" char)
 
     ;;;;recurse to char-node, i.e. call find-sentence3-local with char-node
-               (find-sentence3-local char-node)
+                       (find-sentence3-local char-node)
 
     ;;;;if at tree-root pop char
-               (pop-char-if-at-tree-root current-node)
+                       (pop-char-if-at-tree-root current-node)
     ;;;;increment count
-               (incf (gethash char o))))))))))
+                       (incf (gethash char o))))))))))
 
+
+    (format t "start~%")
 
     ;;start a tree-root
     (find-sentence3-local tree-root)
+
+    (format t "end~%")
 
     ;;return solutions
     solutions
@@ -289,5 +299,5 @@
   (loop for value being the hash-values of hash-table collect value))
 
 (defun print-occurence (o)
-    (format t "o=~a~%" (hash-keys o))
-    (format t "o=~a~%" (hash-values o))  )
+  (format t "o=~a~%" (hash-keys o))
+  (format t "o=~a~%" (hash-values o))  )
