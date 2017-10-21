@@ -202,7 +202,7 @@
         ((= ok-to-process-char 2) ok-to-process-char)
         ((= ok-to-process-char 1) 2)
         ((not start-from-char) 2)
-        ((= char start-from-char) 1)))
+        ((equalp char start-from-char) 1)))
 
     (defun find-sentence3-local (current-node &key start-from-char)
 
@@ -210,14 +210,18 @@
       (when (exhaustedp o)
         ;;yes
 
-        (format t "exhausted")
+        (format t "exhausted~%")
 
     ;;;words at current node?
         (when (has-wordsp current-node)
     ;;;yes
     ;;;;add words at current node to partial solution and add partial solution to solutions
           (add-words partial solutions)
-          (add-words-from-node current-node solutions))
+          (add-words-from-node current-node solutions)
+
+          (format t "solution= ~a~%" solutions)
+          )
+
         ;;return
         (return-from find-sentence3-local))
 
@@ -228,10 +232,16 @@
         ;;yes
     ;;;1. add words at current node to partial solution
         (add-words-from-node current-node partial)
+
+        (format t "partial= ~a~%" partial)
+
     ;;;2. recurse from tree-root AND indicate which nodes not to search, i.e. call find-sentence3-local with tree-root
         (find-sentence3-local tree-root :start-from-char (peek-last-tree-root-char))
     ;;;3. remove words at current node from partial solution
         (remove-words partial)
+
+        (format t "removed partial= ~a~%" partial)
+
         )
 
       ;;loop through all chars at current node
@@ -240,14 +250,14 @@
           (let ((ok-to-process-char 0))
             (loop for char being the hash-keys in nodes using (hash-value char-node) do
 
-                 (format t "checking is ok to process...~%")
+                 (format t "checking is ok to process... ~a~%" char)
 
-                 (when (= 2
-                          (setf ok-to-process-char (ok-to-process-charp
-                                                    current-node
-                                                    char
-                                                    start-from-char
-                                                    ok-to-process-char)))
+                 (when (= 2 2)
+                          ;; (setf ok-to-process-char (ok-to-process-charp
+                          ;;                           current-node
+                          ;;                           char
+                          ;;                           start-from-char
+                          ;;                           ok-to-process-char)))
 
 ;;;is char in occurence and count > 0?
                    (multiple-value-bind (value present) (gethash char o)

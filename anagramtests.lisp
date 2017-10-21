@@ -55,4 +55,19 @@
 
     )))
 
-(test1)
+(unittests::deftest test2 ()
+  (let ((tree (make-instance 'node)))
+
+    (add-sentence tree "rail safety")
+    (add-sentence tree "fairy tale")
+
+    (let ((result (find-sentence3 tree "rail safety")))
+
+      (format t "~a~%" result)
+      (unittests::check (equal result '((("abc" "cba")))))
+
+
+
+    )))
+
+
