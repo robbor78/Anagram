@@ -24,10 +24,15 @@
   (let ((curr tree))
     (loop for char across (nstring-upcase (sort (copy-seq word) #'char-lessp)) do
          (initnodes curr)
+         (format t "curr= ~a ~a~%" curr (slot-value curr 'nodes))
          (with-slots (nodes) curr
-           (when (null (gethash char nodes))
-             (setf (gethash char nodes) (make-instance 'node)))
-           (setf curr (gethash char nodes))))
+           (multiple-value-bind (value present) (gethash char nodes)
+             (when (not present)
+               (setf (gethash char nodes) (make-instance 'node))))
+           (setf curr (gethash char nodes))
+           (format t "tree= ~a ~a~%" tree nodes)
+           (format t "curr= ~a ~a~%" curr (slot-value curr 'nodes))
+           ))
     (with-slots (words) curr
       (initwords curr)
       ;(format t "Adding word ~a to tree.~%" word)
@@ -37,18 +42,21 @@
 (defun add-sentence (tree sentence)
   (loop for word in (my-split sentence) do
        (format t "adding ~a~%" word)
-       (addword tree word)))
+       (add-word tree word)))
 
 (defun print-tree (tree)
   (with-slots (nodes words) tree
+    ;(format t "tree= ~a~%" tree)
+    ;(format t "chars=~a~%" (hash-keys nodes))
     (when (> (length words) 0)
       (format t " (~a) " words))
     (cond ((null nodes)
            (format t " (~a)~%" words))
           (t
+           ;(format t "chars=~a~%" (hash-keys nodes))
            (loop for char being the hash-keys in nodes using (hash-value subnode) do
                 (format t "~a" char)
-                (printtree subnode))))))
+                (print-tree subnode))))))
 
 (defun find-anagram (tree word)
    (let ((curr tree))
@@ -94,7 +102,7 @@
       (loop for word = (read-line in nil) while word do
                                         ;(format t "~a~%" word)
            ;; (format t ".")
-           (addword tree word)
+           (add-word tree word)
            )))
     ;; (format t "~%")))
   (format t "done~%"))
@@ -111,23 +119,34 @@
 (defun find-sentence2 (tree sentence)
   (let ((o (make-occurence sentence)))
     (defun find-sentence2-local (curr)
-      (format t ".")
+                                        ;(print-occurence o)
+      (when (all-zero o)
+        (format t "exhausted~%")
+        (when (> (length (slot-value curr 'words)) 0)
+          (format t "matched~%"))
+        (return-from find-sentence2-local nil))
       (with-slots (nodes) curr
         (when (not (null nodes))
-        (loop for char being the hash-keys in nodes using (hash-value subnode) do
-             (format t "char=~a~%" char)
-             (when (> (gethash char o) 0)
-               (decf (gethash char o))
-               (with-slots (words) curr
-                 (when (> (length words) 0)
-                   (format t "~a~%" words)
-                   (find-sentence2-local tree)))
-               (find-sentence2-local subnode)
-               (incf (gethash char o))))))
+          (format t "chars=~a~%" (hash-keys nodes))
+          (loop for char being the hash-keys in nodes using (hash-value subnode) do
+               (format t "char=~a~%" char)
+               (multiple-value-bind (value present) (gethash char o)
+                 (format t "present=~a value=~a~%" present value)
+                 (when (and present (> value  0))
+                   (decf (gethash char o))
+                   (with-slots (words) curr
+                     (when (> (length words) 0)
+                       (format t "going back to tree ~a~%" words)
+                       (find-sentence2-local tree)))
+                   (format t "preceding~%")
+                   (find-sentence2-local subnode)
+                   (incf (gethash char o)))))))
       (with-slots (words) curr
-        (format t "~a~%" words)))
-    (format t "starting ...")
-    (format t "o=~a~%" o)
+        (when (> (length words) 0)
+          (format t "Words final= ~a~%" words)
+          (find-sentence2-local tree))))
+    (format t "starting ...~%")
+    (print-occurence o)
     (find-sentence2-local tree)
     (format t "done")))
 
@@ -141,8 +160,15 @@
 
 (defun delimiterp (c) (or (char= c #\Space) (char= c #\,)))
 
+(defun all-zero (o)
+  (loop for count being the hash-values in o always (= count 0)))
+
 (defun hash-keys (hash-table)
   (loop for key being the hash-keys of hash-table collect key))
 
 (defun hash-values (hash-table)
   (loop for value being the hash-values of hash-table collect value))
+
+(defun print-occurence (o)
+    (format t "o=~a~%" (hash-keys o))
+    (format t "o=~a~%" (hash-values o))  )
