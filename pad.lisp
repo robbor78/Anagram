@@ -13,3 +13,9 @@
   (format t "~a~%" (car x))
   (setf x (cdr x))
   (format t "~a~%" x))
+
+(let ((x (make-instance 'anagram::node))
+      (y (make-instance 'anagram::node))
+      )
+(equal x x)
+  )

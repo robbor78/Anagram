@@ -189,16 +189,16 @@
       (car tree-root-chars))
 
     (defun push-char-if-at-tree-root (current-node char)
-      (when (= current-node tree-root)
+      (when (equal current-node tree-root)
         (setf tree-root-chars (cons char tree-root-chars))))
 
     (defun pop-char-if-at-tree-root (current-node)
-      (when (= current-node tree-root)
+      (when (equal current-node tree-root)
         (setf tree-root-chars (cdr tree-root-chars))))
 
     (defun ok-to-process-charp (current-node char start-from-char ok-to-process-char)
       (cond
-        ((not (= current-node tree-root)) 2)
+        ((not (equal current-node tree-root)) 2)
         ((= ok-to-process-char 2) ok-to-process-char)
         ((= ok-to-process-char 1) 2)
         ((or (not start-from-char)
@@ -236,7 +236,7 @@
       (with-slots (nodes) current-node
         (when (not (null nodes))
           (let ((ok-to-process-char 0))
-          (loop for char being the hash-keys in nodes using (hash-value subnode) do
+          (loop for char being the hash-keys in nodes using (hash-value char-node) do
                (when (= 2
                         (setf ok-to-process-char (ok-to-process-charp
                                                   current-node
@@ -244,21 +244,30 @@
                                                   start-from-char
                                                   ok-to-process-char)))
 
+
+;;;is char in occurence and count > 0?
+                 (multiple-value-bind (value present) (gethash char o)
+                   (when (and present (> value 0))
     ;;;yes
     ;;;;decrement count
+                     (decf (gethash char o))
     ;;;;if at tree-root push char
                (push-char-if-at-tree-root current-node char)
+
     ;;;;recurse to char-node, i.e. call find-sentence3-local with char-node
+               (find-sentence3-local char-node)
+
     ;;;;if at tree-root pop char
                (pop-char-if-at-tree-root current-node)
     ;;;;increment count
-      ))))))
+               (incf (gethash char o))))))))))
 
 
     ;;start a tree-root
     (find-sentence3-local tree-root)
 
     ;;return solutions
+    solutions
     ))
 
 ;;from stackoverflow!
